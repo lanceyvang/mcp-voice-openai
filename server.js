@@ -57,7 +57,8 @@ function buildMcpServer() {
         voice: selectedVoice,
         instructions,
         tools: tools_schema,
-        modalities: ['text', 'audio']
+        modalities: ['text', 'audio'],
+        input_audio_transcription: { model: 'whisper-1' }
       };
 
       const primaryKey = process.env.OPENAI_API_KEY;
@@ -113,6 +114,27 @@ app.get('/sse', async (req, res) => {
   });
 
   await mcp.connect(transport);
+});
+
+// ---------- REST API (for direct HTTP access) ----------
+
+app.get('/api/models', (_req, res) => res.json(MODELS));
+
+app.post('/api/session', express.json(), async (req, res) => {
+  const { instructions, tools_schema, voice } = req.body;
+  const selectedVoice = voice || 'marin';
+  const body = { model: 'gpt-realtime-1.5', voice: selectedVoice, instructions, tools: tools_schema, modalities: ['text', 'audio'], input_audio_transcription: { model: 'whisper-1' } };
+  const primaryKey = process.env.OPENAI_API_KEY;
+  const fallbackKey = process.env.OPENAI_API_KEY_FALLBACK;
+  try {
+    let data;
+    try { data = await createSession(primaryKey, body); }
+    catch (err) {
+      if (fallbackKey) { data = await createSession(fallbackKey, body); }
+      else throw err;
+    }
+    res.json({ provider: 'openai', model: 'gpt-realtime-1.5', ephemeralKey: data.client_secret?.value, sessionConfig: { voice: selectedVoice, modalities: ['text', 'audio'] } });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/messages', express.json(), async (req, res) => {
