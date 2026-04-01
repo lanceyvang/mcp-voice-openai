@@ -2,8 +2,9 @@
   "name": "mcp-voice-openai",
   "version": "1.0.0",
   "description": "MCP server for OpenAI Realtime API ephemeral keys",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -13,7 +14,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/lanceyvang/mcp-voice-openai/issues"
   },
